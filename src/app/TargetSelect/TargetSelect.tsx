@@ -54,6 +54,7 @@ interface Target {
 export const TargetSelect: React.FunctionComponent<TargetSelectProps> = (props) => {
   const context = React.useContext(ServiceContext);
   const [selected, setSelected] = React.useState('');
+  const [selectedAlias, setSelectedAlias] = React.useState('');
   const [targets, setTargets] = React.useState([] as Target[]);
   const [expanded, setExpanded] = React.useState(false);
   const [isLoading, setLoading] = React.useState(true);
@@ -78,8 +79,22 @@ export const TargetSelect: React.FunctionComponent<TargetSelectProps> = (props) 
     return () => sub.unsubscribe();
   }, [context.commandChannel, refreshTargetList]);
 
+  const updateSelectedAlias = (targetUrl) => {
+    let alias = '';
+    for (let target of targets) {
+      if (target.connectUrl == targetUrl) {
+        alias = target.alias;
+        break;
+      }
+    }
+    setSelectedAlias(alias);
+  }
+
   React.useLayoutEffect(() => {
-    const sub = context.target.target().subscribe(setSelected);
+    const sub = context.target.target().subscribe(target => {
+      setSelected(target);
+      updateSelectedAlias(target);
+    });
     return () => sub.unsubscribe();
   }, [context.target]);
 
@@ -117,7 +132,7 @@ export const TargetSelect: React.FunctionComponent<TargetSelectProps> = (props) 
               <Select
                 toggleIcon={<ContainerNodeIcon />}
                 variant={SelectVariant.single}
-                selections={selected}
+                selections={selectedAlias}
                 onSelect={onSelect}
                 onToggle={setExpanded}
                 isDisabled={isLoading}
